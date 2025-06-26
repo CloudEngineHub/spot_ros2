@@ -3,3 +3,4 @@
 -r ros_utilities_requirements.in
 -r spot_description_requirements.in
 lark
+multipledispatch

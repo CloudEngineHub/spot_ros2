@@ -790,6 +790,9 @@ matplotlib==3.8.4 \
 matplotlib-inline==0.1.7 \
     --hash=sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca
     # via ipython
+multipledispatch==1.0.0 \
+    --hash=sha256:0c53cd8b077546da4e48869f49b13164bebafd0c2a5afceb6bb6a316e7fb46e4
+    # via -r deps/python/requirements_main.in
 narwhals==1.42.1 \
     --hash=sha256:50a5635b11aeda98cf9c37e839fd34b0a24159f59a4dfae930290ad698320494 \
     --hash=sha256:7a270d44b94ccdb277a799ae890c42e8504c537c1849f195eb14717c6184977a

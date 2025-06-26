@@ -1,4 +1,3 @@
-
 load("@humble//ros:defs.bzl", "ros")
 load("@pip//:requirements.bzl", "all_whl_requirements_by_package", "requirement")
 load("@aspect_rules_py//py:defs.bzl", "py_library", "resolutions")
@@ -11,7 +10,7 @@ ros.package_manifest(
 )
 
 ros.cc_library(
-    name = "spot_driver",
+    name = "spot_api",
     package = ":pkg",
     srcs = [
         "src/api/default_kinematic_api.cpp",
@@ -86,7 +85,7 @@ ros.cc_binary(
     package = ":pkg",
     srcs = ["src/images/spot_image_publisher_node_main.cpp"],
     includes = ["include"],
-    deps = [":spot_driver"],
+    deps = [":spot_api"],
     copts = [
         "-std=c++17",
     ],
@@ -97,7 +96,7 @@ ros.cc_binary(
     package = ":pkg",
     srcs = ["src/robot_state/state_publisher_node_main.cpp"],
     includes = ["include"],
-    deps = [":spot_driver"],
+    deps = [":spot_api"],
     copts = [
         "-std=c++17",
     ],
@@ -108,7 +107,7 @@ ros.cc_binary(
     package = ":pkg",
     srcs = ["src/lease/lease_manager_node_main.cpp"],
     includes = ["include"],
-    deps = [":spot_driver"],
+    deps = [":spot_api"],
     copts = [
         "-std=c++17",
     ],
@@ -119,7 +118,7 @@ ros.cc_binary(
     package = ":pkg",
     srcs = ["src/kinematic/kinematic_node_main.cpp"],
     includes = ["include"],
-    deps = [":spot_driver"],
+    deps = [":spot_api"],
     copts = [
         "-std=c++17",
     ],
@@ -130,7 +129,7 @@ ros.cc_binary(
     package = ":pkg",
     srcs = ["src/object_sync/object_synchronizer_node_main.cpp"],
     includes = ["include"],
-    deps = [":spot_driver"],
+    deps = [":spot_api"],
     copts = [
         "-std=c++17",
     ],
@@ -145,7 +144,7 @@ ros.cc_binary(
     ],
     includes = ["include"],
     deps = [
-        ":spot_driver",
+        ":spot_api",
         "@humble//:ros-humble-bondcpp",
         "@humble//:bosdyn-api-msgs",
         "@humble//:bosdyn-spot-api-msgs",
@@ -179,7 +178,7 @@ ros.cc_binary(
         includes = ["include"],
         package = ":pkg",
         deps = [
-            ":spot_driver",
+            ":spot_api",
             "@humble//:ros-humble-rclcpp-components",
         ],
         copts = [
@@ -326,36 +325,69 @@ py_library(
 
 [
     ros.cc_test(
-        name = test_file.replace(".cpp", "").replace("test/", ""),
-        srcs = [test_file],
+        name = test_file.replace(".cpp", "").replace("test/src/", "").replace("/", "_"),
+        srcs = glob([
+            "test/include/spot_driver/**/*.hpp",
+        ]) + [test_file],
+        includes = ["test/include"],
         deps = [
-            ":spot_driver",
+            ":spot_api",
+            "@googletest//:gtest",
             "@googletest//:gtest_main",
-            "@humble//:ros-humble-ament-index-cpp",
+            #"@humble//:ros-humble-gmock-vendor",
             "@humble//:ros-humble-rclcpp",
         ],
         copts = [
             "-std=c++17",
         ],
     )
-    for test_file in glob(["test/**/*.cpp"])
+    for test_file in glob(
+        include=["test/src/**/*.cpp"],
+    )
 ]
 
 [
     ros.py_test(
-        name = test_file.replace(".py", "").replace("test/", ""),
-        srcs = [test_file],
+        name = test_file.replace(".py", "").replace("test/pytests/", ""),
+        srcs = [test_file, "test/pytests/conftest.py"],
         pytest_main = True,
         deps = [
-            ":resolutions_lib",
             ":spot_driver_py",
+            ":resolutions_lib",
+            "@pip//bosdyn_api",
+            "@pip//multipledispatch",
+            "@humble//:bosdyn-msgs",
+            "@humble//:bosdyn-api-msgs",
+            "@humble//:bosdyn-spot-api-msgs",
+            "@humble//:bosdyn-spot-cam-api-msgs",
+            "@humble//:bosdyn-auto-return-api-msgs",
+            "@humble//:bosdyn-autowalk-api-msgs",
+            "@humble//:bosdyn-graph-nav-api-msgs",
+            "@humble//:bosdyn-mission-api-msgs",
+            "@humble//:bosdyn-keepalive-api-msgs",
+            "@humble//:bosdyn-log-status-api-msgs",
+            "@humble//:bosdyn-metrics-logging-api-msgs",
+            "@humble//:proto2ros",
+            "@humble//:ros-humble-launch-pytest",
+            "@humble//:ros-humble-bondpy",
+            "@humble//:ros-humble-launch-ros",
             "@humble//:ros-humble-rclpy",
+            "@humble//:ros-humble-sensor-msgs",
+            "@humble//:ros-humble-std-msgs",
+            "@humble//:ros-humble-geometry-msgs",
+            "@humble//:ros-humble-nav-msgs",
+            "@humble//:ros-humble-tf2-ros",
+            "@humble//:ros-humble-cv-bridge",
+            "@humble//:ros-humble-image-transport",
+            "@humble//:ros-humble-message-filters",
+            "@humble//:ros-humble-tf2-eigen",
         ],
-        env = {
-            "ROS_LOG_DIR": ".",
-        },
-        package_collisions = "ignore",
-        timeout = "long",
+        package_collisions = "ignore"
     )
-    for test_file in glob(["test/pytests/*.py"])
+    for test_file in [
+        "test/pytests/test_clear_behavior_fault.py",
+        "test/pytests/test_robot_command_util.py",
+        "test/pytests/test_robot_state.py",
+        "test/pytests/test_upload_sequence.py"
+    ]
 ]
